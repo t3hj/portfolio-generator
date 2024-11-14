@@ -45,9 +45,9 @@ A web application to create and download a professional portfolio in PDF format.
 ## 📂 File Structure
 
 - `index.html`: The main HTML file containing the structure of the web application.
-- `style.css`: The CSS file for styling the web application.
+// - `style.css`: The CSS file for styling the web application.
 - `portfolio.js`: The JavaScript file containing the logic for adding experiences, education, and generating the portfolio.
-- `html2pdf.bundle.min.js`: The library used to convert HTML content to PDF.
+// - `html2pdf.bundle.min.js`: The library used to convert HTML content to PDF.
 
 ## 🤝 Contributing
 
