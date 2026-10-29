@@ -56,3 +56,13 @@ Contributions are welcome! Please fork the repository and create a pull request 
 ## 📜 License
 
 This project is licensed under the MIT License.
+
+
+## Browser demo
+
+Hosted demo: https://t3hj.github.io/portfolio-website/demos/portfolio-generator/
+
+The static HTML, CSS and JavaScript run without a backend.
+
+Serve the repository root with a static web server for local preview. The hosted copy is deployed through the portfolio's existing GitHub Pages site; enabling Pages on this repository is optional.
+

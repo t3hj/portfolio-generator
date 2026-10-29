@@ -1,3 +1,5 @@
+function escapeHTML(value) { return String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character])); }
+function safeURL(value) { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? escapeHTML(url.href) : ''; } catch { return ''; } }
 document.getElementById('addExperience').addEventListener('click', function() {
     const experienceList = document.getElementById('experienceList');
     const newExperience = document.createElement('div');
@@ -24,35 +26,39 @@ document.getElementById('addEducation').addEventListener('click', function() {
 document.getElementById('generatePortfolio').addEventListener('click', function() {
     const profileImageInput = document.getElementById('profileImage');
     const profileImage = profileImageInput.files[0];
-    const name = document.getElementById('name').value;
-    const role = document.getElementById('role').value;
-    const phone = document.getElementById('phone').value;
-    const email = document.getElementById('email').value;
-    const address = document.getElementById('address').value;
-    const linkedin = document.getElementById('linkedin').value;
-    const github = document.getElementById('github').value;
-    const languages = document.getElementById('languages').value;
-    const hobbies = document.getElementById('hobbies').value;
-    const summary = document.getElementById('summary').value;
-    const certificates = document.getElementById('certificates').value;
+    const name = escapeHTML(document.getElementById('name').value);
+    const role = escapeHTML(document.getElementById('role').value);
+    const phone = escapeHTML(document.getElementById('phone').value);
+    const email = escapeHTML(document.getElementById('email').value);
+    const address = escapeHTML(document.getElementById('address').value);
+    const linkedin = safeURL(document.getElementById('linkedin').value);
+    const github = safeURL(document.getElementById('github').value);
+    const languages = escapeHTML(document.getElementById('languages').value);
+    const hobbies = escapeHTML(document.getElementById('hobbies').value);
+    const summary = escapeHTML(document.getElementById('summary').value);
+    const certificates = escapeHTML(document.getElementById('certificates').value);
 
     const experienceList = Array.from(document.getElementById('experienceList').children).map(exp => `
         <div class="box">
-            <h3>${exp.children[0].value}</h3>
-            <p><strong>Company:</strong> ${exp.children[1].value}</p>
-            <p><strong>Duration:</strong> ${exp.children[2].value}</p>
-            <p>${exp.children[3].value}</p>
+            <h3>${escapeHTML(exp.children[0].value)}</h3>
+            <p><strong>Company:</strong> ${escapeHTML(exp.children[1].value)}</p>
+            <p><strong>Duration:</strong> ${escapeHTML(exp.children[2].value)}</p>
+            <p>${escapeHTML(exp.children[3].value)}</p>
         </div>
     `).join('');
 
     const educationList = Array.from(document.getElementById('educationList').children).map(edu => `
         <div class="box">
-            <h3>${edu.children[0].value}</h3>
-            <p><strong>Institution:</strong> ${edu.children[1].value}</p>
-            <p><strong>Year:</strong> ${edu.children[2].value}</p>
+            <h3>${escapeHTML(edu.children[0].value)}</h3>
+            <p><strong>Institution:</strong> ${escapeHTML(edu.children[1].value)}</p>
+            <p><strong>Year:</strong> ${escapeHTML(edu.children[2].value)}</p>
         </div>
     `).join('');
 
+    if (profileImage && (!profileImage.type.startsWith('image/') || profileImage.size > 5 * 1024 * 1024)) {
+        alert('Choose an image smaller than 5 MB.');
+        return;
+    }
     const reader = new FileReader();
     reader.onload = function(e) {
         const portfolioContent = `
@@ -64,11 +70,11 @@ document.getElementById('generatePortfolio').addEventListener('click', function(
                     <p><strong>Address:</strong> ${address}</p>
                     <div class="social-media-box">
                         <h3>Social Media</h3>
-                        <p><strong>LinkedIn:</strong> <a href="${linkedin}" target="_blank">${linkedin}</a></p>
-                        <p><strong>GitHub:</strong> <a href="${github}" target="_blank">${github}</a></p>
+                        <p><strong>LinkedIn:</strong> <a href="${linkedin}" target="_blank" rel="noreferrer">${linkedin}</a></p>
+                        <p><strong>GitHub:</strong> <a href="${github}" target="_blank" rel="noreferrer">${github}</a></p>
                     </div>
                 </div>
-                <img id="portfolioImage" src="${e.target.result}" alt="Profile Image" style="max-width: 150px;">
+                <img id="portfolioImage" src="${e.target.result}" alt="Profile Image" style="max-width: 150px; ${profileImage ? '' : 'display:none;'}">
             </div>
             <div class="box">
                 <h3>Profile Summary</h3>
@@ -95,7 +101,7 @@ document.getElementById('generatePortfolio').addEventListener('click', function(
 
         document.getElementById('portfolioContent').innerHTML = portfolioContent;
         document.getElementById('portfolioDisplay').classList.remove('hidden');
-        document.getElementById('portfolioName').innerText = name; // Ensure the name is set here
+        document.getElementById('portfolioName').textContent = document.getElementById('name').value; // Ensure the name is set here
     };
 
     if (profileImage) {
@@ -105,11 +111,12 @@ document.getElementById('generatePortfolio').addEventListener('click', function(
     }
 });
 
-document.getElementById('downloadPortfolio').addEventListener('click', function() {
+document.getElementById('downloadPortfolio').addEventListener('click', async function() {
     const element = document.getElementById('portfolioDisplay');
-    const downloadButton = document.getElementById('downloadPortfolio');
-    downloadButton.style.display = 'none'; // Hide the button before generating the PDF
-    html2pdf().from(element).save('portfolio.pdf').then(() => {
-        downloadButton.style.display = 'block'; // Show the button again after generating the PDF
-    });
+    const button = document.getElementById('downloadPortfolio');
+    if (typeof html2pdf !== 'function') { window.print(); return; }
+    button.hidden = true;
+    try { await html2pdf().from(element).save('portfolio.pdf'); }
+    catch { window.print(); }
+    finally { button.hidden = false; }
 });
